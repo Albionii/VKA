@@ -1,16 +1,15 @@
-// indexedDB.js
-const dbName = 'clientsDB'; 
+const dbName = 'clientsDB';
 const storeName = 'clients';
 
-
-export const openDatabase = () => {
+const openDatabase = () => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(dbName, 1);
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
       if (!db.objectStoreNames.contains(storeName)) {
-        db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        const objectStore = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+        objectStore.createIndex('name', 'name', { unique: false });
       }
     };
 
@@ -25,87 +24,96 @@ export const openDatabase = () => {
   });
 };
 
-export const getClients = async () => {
+const getTransaction = async (mode) => {
+  const db = await openDatabase();
+  return db.transaction(storeName, mode).objectStore(storeName);
+};
+
+export const addClient = async (client) => {
+  const objectStore = await getTransaction('readwrite');
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
+    const request = objectStore.add(client);
 
-    request.onerror = function(event) {
-      console.error('Failed to open indexedDB:', event.target.errorCode);
-      reject(new Error('Failed to open indexedDB'));
+    request.onsuccess = () => {
+      resolve();
     };
 
-    request.onsuccess = function(event) {
-      const db = event.target.result;
-      const transaction = db.transaction(storeName, 'readonly');
-      const objectStore = transaction.objectStore(storeName);
-
-      const getClientsRequest = objectStore.getAll();
-
-      getClientsRequest.onsuccess = function(event) {
-        let clients = event.target.result;
-        
-        // Sort clients array by id in descending order
-        clients.sort((a, b) => b.id - a.id);
-
-        resolve(clients);
-      };
-
-      getClientsRequest.onerror = function(event) {
-        console.error('Error fetching clients:', event.target.error);
-        reject(new Error('Failed to fetch clients'));
-      };
-
-      transaction.oncomplete = function(event) {
-        db.close();
-      };
-    };
-
-    request.onupgradeneeded = function(event) {
-      const db = event.target.result;
-      db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+    request.onerror = (event) => {
+      console.error('Error adding client:', event.target.error);
+      reject(event.target.error);
     };
   });
 };
 
+export const updateClient = async (client) => {
+  const objectStore = await getTransaction('readwrite');
+  return new Promise((resolve, reject) => {
+    const request = objectStore.put(client);
+
+    request.onsuccess = () => {
+      resolve();
+    };
+
+    request.onerror = (event) => {
+      console.error('Error editing client:', event.target.error);
+      reject(event.target.error);
+    };
+  });
+};
 
 export const deleteClient = async (clientId) => {
-
+  const objectStore = await getTransaction('readwrite');
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
+    const request = objectStore.delete(clientId);
 
-    request.onerror = function(event) {
-      console.error('Failed to open indexedDB:', event.target.errorCode);
-      reject(new Error('Failed to open indexedDB'));
+    request.onsuccess = () => {
+      resolve();
     };
 
-    request.onsuccess = function(event) {
-      const db = event.target.result;
-      const transaction = db.transaction(storeName, 'readwrite');
-      const objectStore = transaction.objectStore(storeName);
-
-      const deleteRequest = objectStore.delete(clientId);
-
-      deleteRequest.onsuccess = function(event) {
-        console.log(`Client with ID ${clientId} deleted successfully.`);
-        resolve();
-      };
-
-      deleteRequest.onerror = function(event) {
-        console.error('Error deleting client:', event.target.error);
-        reject(new Error('Failed to delete client'));
-      };
-
-      transaction.oncomplete = function(event) {
-        db.close();
-      };
-    };
-
-    request.onupgradeneeded = function(event) {
-      const db = event.target.result;
-      db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
+    request.onerror = (event) => {
+      console.error('Error deleting client:', event.target.error);
+      reject(event.target.error);
     };
   });
 };
+
+export const getClients = async () => {
+  const objectStore = await getTransaction('readonly');
+  return new Promise((resolve, reject) => {
+    const request = objectStore.getAll();
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      console.error('Error fetching clients:', event.target.error);
+      reject(event.target.error);
+    };
+  });
+};
+
+export const getClient = async (clientId) => {
+  const objectStore = await getTransaction('readonly');
+  return new Promise((resolve, reject) => {
+    const request = objectStore.get(clientId);
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      console.error('Error fetching client:', event.target.error);
+      reject(event.target.error);
+    };
+  });
+};
+
+export const getImagesOfClient = async (clientId) => {
+  const client = await getClient(clientId);
+  return client ? client.photos : [];
+};
+
 
 export const searchByName = async (name) => {
 
@@ -147,48 +155,6 @@ export const searchByName = async (name) => {
       const db = event.target.result;
       const objectStore = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
       objectStore.createIndex('name', 'name', { unique: false }); // Create index on 'name' property
-    };
-  });
-};
-
-export const getClientImages = async (clientId) => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
-
-    request.onerror = (event) => {
-      console.error('Failed to open indexedDB:', event.target.errorCode);
-      reject(new Error('Failed to open indexedDB'));
-    };
-
-    request.onsuccess = (event) => {
-      const db = event.target.result;
-      const transaction = db.transaction(storeName, 'readonly');
-      const objectStore = transaction.objectStore(storeName);
-      const clientRequest = objectStore.get(clientId);
-
-      clientRequest.onsuccess = (event) => {
-        const client = event.target.result;
-        if (client && client.photos) {
-          resolve(client.photos);
-        } else {
-          resolve([]);
-        }
-      };
-
-      clientRequest.onerror = (event) => {
-        console.error('Error fetching client images:', event.target.error);
-        reject(new Error('Failed to fetch client images'));
-      };
-
-      transaction.oncomplete = () => {
-        db.close();
-      };
-    };
-
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      const objectStore = db.createObjectStore(storeName, { keyPath: 'id', autoIncrement: true });
-      objectStore.createIndex('id', 'id', { unique: false });
     };
   });
 };

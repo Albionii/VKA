@@ -5,7 +5,7 @@ import SidePreview from './SidePreview';
 
 export default function ViewClient() {
   const [clients, setClients] = useState([]);
-  const [client, setClient] = useState('');
+  const [client, setClient] = useState(null);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -45,6 +45,7 @@ export default function ViewClient() {
   const showPreview = (client) => {
     setShow(show => !show);
     setClient(client)
+    fetchClients();
   }
   
 
@@ -112,20 +113,6 @@ export default function ViewClient() {
                     <td className="border-b border-gray-600 px-6 py-4 whitespace-no-wrap text-center">
                       
                       <div className="flex items-center space-x-4 justify-center">
-                      
-                        <button
-                          type="button"
-                          data-drawer-target="drawer-update-product"
-                          data-drawer-show="drawer-update-product"
-                          aria-controls="drawer-update-product"
-                          className="py-2 px-3 flex items-center text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 -ml-0.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                            <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
-                            <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
-                          </svg>
-                          Ndrysho
-                        </button>
                         <button
                           type="button"
                           data-drawer-target="drawer-read-product-advanced"
@@ -161,7 +148,7 @@ export default function ViewClient() {
           </div>
         </div>
       </div>
-      <SidePreview show={show} exit={showPreview} client={client}/>
+      {client != null && <SidePreview show={show} exit={showPreview} client={client}/>}
       
     </div>
   );

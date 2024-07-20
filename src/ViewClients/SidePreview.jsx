@@ -1,11 +1,50 @@
+import { useEffect, useState } from "react";
+// import { getImagesOfClient, updateClient } from "./clientDB";
+import { getImagesOfClient, updateClient } from "./indexDB";
 
 export default function SidePreview ({show, exit, client}) {
+  const [clientDetails, setClientDetails] = useState(client);
+  const [images, setImages] = useState([]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const clientImages = await getImagesOfClient(client.id);
+        setImages(clientImages);
+      } catch (error) {
+        console.log("Error fetching images", error);
+      }
+    };
+    fetchImages();
+  }, [client]);
+
+  useEffect(() => {
+    setClientDetails(client);
+  }, [client]);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setClientDetails((prevDetails) => ({
+      ...prevDetails,
+      [name]: value,
+    }));
+  };
+
+  const handleUpdateClient = async () => {
+    try {
+      await updateClient(clientDetails);
+      console.log("Client updated successfully");
+      exit(clientDetails);
+    } catch (error) {
+      console.error("Error updating client:", error);
+    }
+  };
 
   const handleExit = () => {
     exit(client);
-  }
+  };
 
-  return(
+  return (
     <div
       id="drawer-read-product-advanced"
       className={"overflow-y-auto fixed top-0 left-0 z-40 p-4 w-full max-w-lg h-screen bg-white transition-transform dark:bg-gray-800 "+(show ? "":"-translate-x-full")}
@@ -16,14 +55,12 @@ export default function SidePreview ({show, exit, client}) {
       <div>
         <h4
           id="read-drawer-label"
-          className="mb-1.5 leading-none text-xl font-semibold text-gray-900 dark:text-white"
+          className="text-center mb-1.5 leading-none text-xl font-semibold text-gray-900 dark:text-white mt-2"
         >
-          {client.name}
+          {clientDetails.name}
         </h4>
-        <h5 className="mb-5 text-xl font-bold text-gray-900 dark:text-white">
-          $2999
-        </h5>
       </div>
+      <br />
       <button
         type="button"
         data-drawer-dismiss="drawer-read-product-advanced"
@@ -47,125 +84,131 @@ export default function SidePreview ({show, exit, client}) {
         <span className="sr-only">Close menu</span>
       </button>
       <div className="grid grid-cols-3 gap-4 mb-4 sm:mb-5">
-        {show?
-        // client.photos.map(url => {
-        //   <div key={url} className="p-2 w-auto bg-gray-100 rounded-lg dark:bg-gray-700">
-        //   <p>{url}</p>
-        // </div>
-        // })
-        <p>{JSON.stringify(client.photos)}</p>
-        :""}
-        
-        
-        
+        <label className="col-span-3 text-white">
+          Emri Klientit:
+          <input
+            type="text"
+            name="name"
+            value={clientDetails.name}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            />
+        </label>
+        <label className="col-span-3 text-white">
+          Numri Telefonit:
+          <input
+            type="text"
+            name="phone"
+            value={clientDetails.phone}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+        </label>
+        <label className="col-span-3 text-white">
+          Modeli Veshjes:
+          <input
+            type="text"
+            name="model"
+            value={clientDetails.model}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+        </label>
+        <label className="col-span-3 text-white">
+          Çmimi:
+          <input
+            type="text"
+            name="price"
+            value={clientDetails.price}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+        </label>
+        <label className="col-span-3 text-white">
+          Kaparja:
+          <input
+            type="text"
+            name="deposit"
+            value={clientDetails.deposit}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+        </label>
+        <label className="col-span-3 text-white">
+          Data e Porosisë:
+          <input
+            type="date"
+            name="orderDate"
+            value={clientDetails.orderDate}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+        </label>
+        <label className="col-span-3 text-white">
+          Data e Marrjes:
+          <input
+            type="date"
+            name="pickupDate"
+            value={clientDetails.pickupDate}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+        </label>
+        <label className="col-span-3 text-white">
+          Dimensionet:
+          <input
+            type="text"
+            name="dimensions"
+            value={clientDetails.dimensions}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+          />
+        </label>
+        <label className="col-span-3 text-white">
+          Shënimi:
+          <textarea
+            name="note"
+            value={clientDetails.note}
+            onChange={handleInputChange}
+            className="w-full p-2 mt-1 border rounded-md bg-gray-50 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+            rows="4"
+          />
+        </label>
+
       </div>
       <dl className="sm:mb-5">
         <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-          Details
+          Photos
         </dt>
-        <dd className="mb-4 font-light text-gray-500 sm:mb-5 dark:text-gray-400">
-          Standard glass ,3.8GHz 8-core 10th-generation Intel Core i7 processor,
-          Turbo Boost up to 5.0GHz, 16GB 2666MHz DDR4 memory, Radeon Pro 5500 XT
-          with 8GB of GDDR6 memory, 256GB SSD storage, Gigabit Ethernet, Magic Mouse
-          2, Magic Keyboard - US.
-        </dd>
       </dl>
       <dl className="grid grid-cols-2 gap-4 mb-4">
-        <div className="col-span-2 p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 sm:col-span-1 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Shipping
-          </dt>
-          <dd className="flex items-center text-gray-500 dark:text-gray-400">
-            <svg
-              className="w-4 h-4 mr-1.5"
-              aria-hidden="true"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
+        {images.length > 0 ? (
+          images.map((image, index) => (
+            <div
+              key={index}
+              className="col-span-2 p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 sm:col-span-1 dark:border-gray-600 flex justify-center items-center"
             >
-              <path
-                fillRule="evenodd"
-                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            United States, Europe
-          </dd>
-        </div>
-        <div className="col-span-2 p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 sm:col-span-1 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Colors
-          </dt>
-          <dd className="flex items-center space-x-2 font-light text-gray-500 dark:text-gray-400">
-            <div className="flex-shrink-0 w-6 h-6 bg-purple-600 rounded-full" />
-            <div className="flex-shrink-0 w-6 h-6 bg-indigo-400 rounded-full" />
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600" />
-            <div className="flex-shrink-0 w-6 h-6 bg-pink-400 rounded-full" />
-            <div className="flex-shrink-0 w-6 h-6 bg-teal-300 rounded-full" />
-            <div className="flex-shrink-0 w-6 h-6 bg-green-300 rounded-full" />
-          </dd>
-        </div>
-        <div className="p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Product State
-          </dt>
-          <dd className="text-gray-500 dark:text-gray-400">
-            <span className="bg-primary-100 text-primary-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-primary-200 dark:text-primary-800">
-              <svg
-                aria-hidden="true"
-                className="mr-1 w-3 h-3"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              New
-            </span>
-          </dd>
-        </div>
-        <div className="p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Sold by
-          </dt>
-          <dd className="text-gray-500 dark:text-gray-400">Flowbite</dd>
-        </div>
-        <div className="p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Ships from
-          </dt>
-          <dd className="text-gray-500 dark:text-gray-400">Flowbite</dd>
-        </div>
-        <div className="p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Brand
-          </dt>
-          <dd className="text-gray-500 dark:text-gray-400">Apple</dd>
-        </div>
-        <div className="p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Dimensions (cm)
-          </dt>
-          <dd className="text-gray-500 dark:text-gray-400">105 x 15 x 23</dd>
-        </div>
-        <div className="p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 dark:border-gray-600">
-          <dt className="mb-2 font-semibold leading-none text-gray-900 dark:text-white">
-            Item weight
-          </dt>
-          <dd className="text-gray-500 dark:text-gray-400">12kg</dd>
-        </div>
+              <img src={image} alt={`Client ${clientDetails.name} ${index + 1}`} />
+            </div>
+          ))
+        ) : (
+          <div className="col-span-2 p-3 bg-gray-100 rounded-lg border border-gray-200 dark:bg-gray-700 sm:col-span-2 dark:border-gray-600 text-center">
+            <p className="text-white">No photos available.</p>
+          </div>
+        )}
       </dl>
       <div className="flex bottom-0 left-0 justify-center pb-4 space-x-4 w-full">
         <button
           type="button"
-          className="text-white w-full inline-flex items-center justify-center bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+          onClick={handleUpdateClient}
+          className="w-full justify-center py-2 px-3 flex items-center text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
         >
           <svg
-            aria-hidden="true"
-            className="mr-1 -ml-1 w-5 h-5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
             xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 mr-2 -ml-0.5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
           >
             <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
             <path
@@ -174,7 +217,7 @@ export default function SidePreview ({show, exit, client}) {
               clipRule="evenodd"
             />
           </svg>
-          Edit
+          Update
         </button>
         <button
           type="button"
@@ -197,5 +240,5 @@ export default function SidePreview ({show, exit, client}) {
         </button>
       </div>
     </div>
-  )
+  );
 }
