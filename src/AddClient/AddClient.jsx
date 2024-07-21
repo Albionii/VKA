@@ -56,7 +56,7 @@ export default function AddClient() {
   // };
 
   const handleSubmit = async (event) => {
-    // event.preventDefault();
+    event.preventDefault();
     const formData = new FormData(event.target);
 
     const client = {
