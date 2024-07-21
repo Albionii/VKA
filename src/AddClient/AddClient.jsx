@@ -74,9 +74,9 @@ export default function AddClient() {
 
     addClient(client)
       .then(() => {
-        console.log('Client added successfully');
+        alert('Client added successfully');
       })
-      .catch(err => console.error('Error adding client:', err));
+      .catch(err => alert('Error adding client:', err));
   };
 
   
